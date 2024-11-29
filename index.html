@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
 
-  <title> <마꾸> 마트료시카 꾸미기라는 뜻</title>
+  <title> <트꾸> 트리 꾸미기</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -36,7 +36,6 @@
       justify-content: center;
       flex-wrap: wrap;
       max-width: 600px;
-
     }
     .link {
       width: 100px;
@@ -72,23 +71,33 @@
       border: none;
       font-size: 1em;
       cursor: pointer;
+      width: 150px;
+      height: 50px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
 
     }
     .next-button {
       right: 0px;
-      background-color: #4CAF50;
-      color: white;
+      background-color: #ffffff;
+      color: rgb(0, 0, 0);
     }
     .next-button:hover {
-      background-color: #3e8e41;
+      background-color: #d6d6d6;
     }
     .prev-button {
-      left: 0px;
-      background-color: #4CAF50;
-      color: white;
+      position: absolute;
+      top: 10px;  /* 좌측 상단 */
+      left: 10px;
+      height: 50px;
+      background-color: #ffffff;
+      color: rgb(0, 0, 0);
+      font-size: 1em;
+      cursor: pointer;
     }
     .prev-button:hover {
-      background-color: #3e8e41;
+      background-color: #d6d6d6;
     }
     #final-image {
       margin-top: 10px;
@@ -107,6 +116,8 @@
   <img id="cursorImage" class="cursor-image" src="" alt="Cursor Image">
   <button class="next-button" onclick="nextStep()" style="display: none;">다음으로</button>
   <button class="prev-button" onclick="removeLastImage()" style="display: none;">되돌아가기</button>
+  <button class="next-button" onclick="completeCanvas()" style="display: none;">완성</button>
+
   <img id="final-image" style="display: none;"> <!-- 캡쳐된 최종 이미지가 이곳에 표시됨 -->
 
   <script>
@@ -122,70 +133,117 @@
 
     // 첫 번째 단계에서 이미지 선택
     function selectFirstImage(imagePath) {
-      // 첫 번째 단계에서 선택한 이미지를 바로 캔버스에 추가
       const img = document.createElement("img");
       img.src = imagePath;
       img.style.left = "50%";
       img.style.top = "50%";
 
-      img.style.zIndex = currentStep === 8 ? 1 : 2;
+      img.style.zIndex = currentStep === 7 ? 1 : 2;
       canvas.innerHTML = ""; // 이전 이미지 제거
       canvas.appendChild(img);
       addedImages.push(img); // 추가된 이미지 저장
       setTimeout(() => nextStep(), 500);
     }
 
-    // 다음 단계로 이동
     function nextStep() {
-      if (currentStep >= 8) {
-        captureCanvas();
-        return;
-      }
+  if (currentStep >= 7) {
+    document.querySelector(".next-button[onclick='completeCanvas()']").style.display = "block"; // "완성" 버튼 보이기
+    captureCanvas();
+    return;
+  }
 
-      currentStep++;
-      imagesOnCanvas = 0;
-      // 캔버스를 리셋 안하기
-      if (currentStep === 8) {
-        content.style.zIndex = 1;
-      } else {
-        content.style.zIndex = currentZIndex++;
-      }
+  currentStep++;
+  imagesOnCanvas = 0;
 
-      const selectionCounts = { 2: 5, 3: 5, 4: 5, 5: 5, 6: 10, 7: 10, 8: 5};
-      const selections = selectionCounts[currentStep] || 3;
+  if (currentStep === 7) {
+    content.style.zIndex = 1; // 마지막 단계 z-index 조정
+  } else {
+    content.style.zIndex = currentZIndex++;
+  }
 
-      // 선택박스 업데이트
-      content.innerHTML = "";
-      for (let i = 1; i <= selections; i++) {
-        const link = document.createElement("div");
-        link.className = "link";
-        const img = document.createElement("img");
-        img.src = `${currentStep}${String.fromCharCode(96 + i)}.png`;
-        img.alt = `${currentStep}${String.fromCharCode(96 + i).toUpperCase()}`;
-        link.appendChild(img);
+  const selectionCounts = { 2: 5, 3: 5, 4: 5, 5: 10, 6: 10, 7: 7 };
+  const selections = selectionCounts[currentStep] || 3;
 
-        link.onclick = () => startDragging(`${currentStep}${String.fromCharCode(96 + i)}.png`);
-        content.appendChild(link);
-      }
+  content.innerHTML = "";
+  for (let i = 1; i <= selections; i++) {
+    const link = document.createElement("div");
+    link.className = "link";
+    const img = document.createElement("img");
+    img.src = `${currentStep}${String.fromCharCode(96 + i)}.png`;
+    img.alt = `${currentStep}${String.fromCharCode(96 + i).toUpperCase()}`;
+    link.appendChild(img);
 
-      if (currentStep > 1) {
-        document.querySelector(".next-button").style.display = "block";
-      }
-      document.querySelector(".prev-button").style.display = "block";
-    }
+    link.onclick = () => startDragging(`${currentStep}${String.fromCharCode(96 + i)}.png`);
+    content.appendChild(link);
+  }
+
+  if (currentStep > 1) {
+    document.querySelector(".next-button").style.display = "block";
+  }
+  document.querySelector(".prev-button").style.display = "block";
+}
 
     // 드래그
     function startDragging(imagePath) {
-      if (imagesOnCanvas >= maxImages) {
-        alert("단계별로 최대 10개의 이미지만 올릴 수 있습니다");
-        return;
-      }
-      cursorImage.src = imagePath;
-      cursorImage.style.display = "block";
+      if (currentStep === 7) {
+        placeCenteredImage(imagePath);
+      } else {
+          if (imagesOnCanvas >= maxImages) {
+              alert("단계별로 최대 10개의 이미지만 올릴 수 있습니다");
+              return;
+          }
+          cursorImage.src = imagePath;
+          cursorImage.style.display = "block";
 
-      document.addEventListener("mousemove", followCursor);
-      canvas.addEventListener("click", placeImage);
+          document.addEventListener("mousemove", followCursor);
+          canvas.addEventListener("click", placeImage);
+      }
     }
+
+    let step8Images = [];
+
+    function placeCenteredImage(imagePath) {
+    if (currentStep === 7) {
+        step8Images.forEach(image => canvas.removeChild(image));
+        step8Images = [];
+    }
+
+    // 새 이미지를 중앙에 추가
+    const img = document.createElement("img");
+    img.src = imagePath;
+    img.style.position = "absolute";
+    img.style.left = "50%";
+    img.style.top = "50%";
+    img.style.transform = "translate(-50%, -50%)";
+
+    // 캔버스 크기나 이미지 원본 크기를 기준으로 크기 설정
+    const canvasWidth = canvas.offsetWidth;
+    const canvasHeight = canvas.offsetHeight;
+
+    // 이미지의 원본 크기 계산
+    const imgAspectRatio = img.naturalWidth / img.naturalHeight;
+
+    // 캔버스 크기에 맞춰 이미지 크기 조정
+    if (imgAspectRatio > 1) {  // 가로가 긴 경우
+        img.style.width = `${canvasWidth}px`;  // 캔버스의 90% 너비
+        img.style.height = 'auto';  // 자동 높이 계산
+    } else {  // 세로가 긴 경우
+        img.style.height = `${canvasHeight}px`;  // 캔버스의 90% 높이
+        img.style.width = 'auto';  // 자동 너비 계산
+    }
+
+    img.style.zIndex = 1;
+
+    canvas.appendChild(img);
+
+    if (currentStep === 7) {
+        step8Images.push(img);
+    } else {
+        addedImages.push(img); // 다른 단계는 기존 배열 사용
+    }
+}
+
+
 
     // 마우스 따라다니기
     function followCursor(event) {
@@ -203,18 +261,23 @@
 
       const img = document.createElement("img");
       img.src = cursorImage.src;
-      img.style.left = `${x}px`;
-      img.style.top = `${y}px`;
 
-      if (currentStep === 8) {
+
+      if (currentStep === 7) {
         img.style.zIndex = 1; // 8단계 이미지는 가장 아래
-      } else {
+        img.style.height = `${canvas.offsetHeight}px`; // 캔버스 높이에 맞춤
+        img.style.width = `${canvas.offsetHeight * (cursorImage.naturalWidth / cursorImage.naturalHeight)}px`; // 비율 유지
+        img.style.left = `${(canvas.offsetWidth - img.offsetWidth) / 2}px`; // 가로 중앙 정렬
+        img.style.top = `0px`; // 위쪽 기준
+    } else {
         img.style.zIndex = currentStep + 2; // 1단계 이후부터 점진적으로 증가
-      }
-      img.style.width = `${150}px`;
-      img.style.height = `${150 * (cursorImage.naturalHeight / cursorImage.naturalWidth)}px`; // 원본 비율 유지
+        img.style.left = `${x}px`;
+        img.style.top = `${y}px`;
+        img.style.width = `${150}px`;
+        img.style.height = `${150 * (cursorImage.naturalHeight / cursorImage.naturalWidth)}px`; // 원본 비율 유지
+    }
+    
       canvas.appendChild(img);
-
       addedImages.push(img); // 이미지 배열에 추가
       imagesOnCanvas++;
       cursorImage.style.display = "none";
@@ -232,19 +295,42 @@
     }
 
     
-    // 7단계에서 캔버스를 캡쳐하고 이미지로 보여주는 함수
-    function captureCanvas() {
-      document.querySelector(".next-button").disabled = true; // 캡처 중에는 "다음으로" 버튼 비활성화
-      html2canvas(canvas).then((canvasSnapshot) => {
-        finalImage.src = canvasSnapshot.toDataURL();
-        finalImage.style.display = "block"; // 캡처된 이미지 보이기
-        document.querySelector(".next-button").style.display = "none";
-        document.querySelector(".prev-button").style.display = "none";
-        document.querySelector(".next-button").disabled = false; //캡쳐완료되면 다음으로 버튼 활성화
-      });
-    }
-  </script>
+// "완성" 버튼 클릭 시 화면 캡처
+function completeCanvas() {
+  // 선택 버튼 숨기기
+  document.getElementById("content").style.display = "none"; // 선택 버튼 숨기기
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/0.4.1/html2canvas.min.js"></script>
+  // "완성" 버튼 캡처 후 다운로드
+  captureCanvas();
+}
+
+  // 캔버스 캡처 후 브라우저에서 이미지 표시
+  function captureCanvas() {
+    const canvasSnapshotArea = document.querySelector(".canvas-container");
+    html2canvas(canvasSnapshotArea).then((canvasSnapshot) => {
+      const dataURL = canvasSnapshot.toDataURL(); // 캡처된 이미지를 Data URL로 변환
+      finalImage.src = dataURL; // 최종 이미지 태그에 표시
+      finalImage.style.display = "block"; // 최종 이미지 보이기
+      const link = document.createElement("a"); // 다운로드를 위한 링크 생성
+      link.href = dataURL;
+      link.download = "tree-decoration.png"; // 다운로드 파일명 설정
+      link.textContent = "이미지 다운로드"; // 링크 텍스트
+      link.style.display = "inline-block";
+      link.style.marginTop = "10px";
+      link.style.background = "#4CAF50";
+      link.style.color = "#fff";
+      link.style.padding = "10px 20px";
+      link.style.borderRadius = "5px";
+      link.style.textDecoration = "none";
+      document.body.appendChild(link); // 페이지에 링크 추가
+    });
+  }
+
+
+
+</script>
+
+
 </body>
 </html>
+
