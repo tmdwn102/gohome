@@ -4,6 +4,8 @@
   <meta charset="UTF-8">
 
   <title> <트꾸> 트리 꾸미기</title>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -18,7 +20,7 @@
     }
     .canvas-container {
       position: relative;
-      width: 1000px;
+      width: 500px;
       height: 560px;
       background-color: #ddd;
       margin-bottom: 20px;
@@ -79,7 +81,7 @@
 
     }
     .next-button {
-      right: 0px;
+      right: 340px;
       background-color: #ffffff;
       color: rgb(0, 0, 0);
     }
@@ -88,8 +90,7 @@
     }
     .prev-button {
       position: absolute;
-      top: 10px;  /* 좌측 상단 */
-      left: 10px;
+      left: 340px;
       height: 50px;
       background-color: #ffffff;
       color: rgb(0, 0, 0);
@@ -99,11 +100,21 @@
     .prev-button:hover {
       background-color: #d6d6d6;
     }
+    .download-button {
+      left: 190px;
+      width: 50px;
+      height: 50px;
+      padding: 0;
+      font-size: 0;
+      background: url('download.png') no-repeat center center;
+      background-size: contain;
+    }
     #final-image {
       margin-top: 10px;
       max-width: 100%;
     }
   </style>
+
 </head>
 <body>
   <div class="canvas-container" id="canvas"></div> <!-- 캔버스 -->
@@ -146,42 +157,41 @@
     }
 
     function nextStep() {
-  if (currentStep >= 7) {
-    document.querySelector(".next-button[onclick='completeCanvas()']").style.display = "block"; // "완성" 버튼 보이기
-    captureCanvas();
-    return;
-  }
+      if (currentStep >= 7) {
+        document.querySelector(".next-button[onclick='completeCanvas()']").style.display = "block"; // "완성" 버튼 보이기
+        return;
+      }
 
-  currentStep++;
-  imagesOnCanvas = 0;
+      currentStep++;
+      imagesOnCanvas = 0;
 
-  if (currentStep === 7) {
-    content.style.zIndex = 1; // 마지막 단계 z-index 조정
-  } else {
-    content.style.zIndex = currentZIndex++;
-  }
+      if (currentStep === 7) {
+        content.style.zIndex = 1; // 마지막 단계 z-index 조정
+      } else {
+        content.style.zIndex = currentZIndex++;
+      }
 
-  const selectionCounts = { 2: 5, 3: 5, 4: 5, 5: 10, 6: 10, 7: 7 };
-  const selections = selectionCounts[currentStep] || 3;
+      const selectionCounts = { 2: 5, 3: 5, 4: 5, 5: 10, 6: 10, 7: 7 };
+      const selections = selectionCounts[currentStep] || 3;
 
-  content.innerHTML = "";
-  for (let i = 1; i <= selections; i++) {
-    const link = document.createElement("div");
-    link.className = "link";
-    const img = document.createElement("img");
-    img.src = `${currentStep}${String.fromCharCode(96 + i)}.png`;
-    img.alt = `${currentStep}${String.fromCharCode(96 + i).toUpperCase()}`;
-    link.appendChild(img);
+      content.innerHTML = "";
+      for (let i = 1; i <= selections; i++) {
+        const link = document.createElement("div");
+        link.className = "link";
+        const img = document.createElement("img");
+        img.src = `${currentStep}${String.fromCharCode(96 + i)}.png`;
+        img.alt = `${currentStep}${String.fromCharCode(96 + i).toUpperCase()}`;
+        link.appendChild(img);
 
-    link.onclick = () => startDragging(`${currentStep}${String.fromCharCode(96 + i)}.png`);
-    content.appendChild(link);
-  }
+        link.onclick = () => startDragging(`${currentStep}${String.fromCharCode(96 + i)}.png`);
+        content.appendChild(link);
+      }
 
-  if (currentStep > 1) {
-    document.querySelector(".next-button").style.display = "block";
-  }
-  document.querySelector(".prev-button").style.display = "block";
-}
+      if (currentStep > 1) {
+        document.querySelector(".next-button").style.display = "block";
+      }
+      document.querySelector(".prev-button").style.display = "block";
+    }
 
     // 드래그
     function startDragging(imagePath) {
@@ -295,42 +305,36 @@
     }
 
     
-// "완성" 버튼 클릭 시 화면 캡처
+// 완성 클릭 시 화면 캡쳐
 function completeCanvas() {
-  // 선택 버튼 숨기기
-  document.getElementById("content").style.display = "none"; // 선택 버튼 숨기기
+  //선택 버튼 숨기기
+  document.getElementById("content").style.display = "none";
 
-  // "완성" 버튼 캡처 후 다운로드
   captureCanvas();
+  function captureCanvas() {
+  const canvasSnapshotArea = document.querySelector(".canvas-container");
+
+  html2canvas(canvasSnapshotArea).then((canvasSnapshot) => {
+    const dataURL = canvasSnapshot.toDataURL();
+    finalImage.src = dataURL;
+    finalImage.style.display = "block";
+
+    const downloadButton = document.createElement("button");
+    downloadButton.className = "download-button";
+    downloadButton.onclick = () => {
+      const link = document.createElement('a');
+      link.download = 'tree-decoration.png';
+      link.href = dataURL;
+      link.click();
+    };
+    document.body.appendChild(downloadButton); //다운로드 버튼 추가
+  });
 }
 
-  // 캔버스 캡처 후 브라우저에서 이미지 표시
-  function captureCanvas() {
-    const canvasSnapshotArea = document.querySelector(".canvas-container");
-    html2canvas(canvasSnapshotArea).then((canvasSnapshot) => {
-      const dataURL = canvasSnapshot.toDataURL(); // 캡처된 이미지를 Data URL로 변환
-      finalImage.src = dataURL; // 최종 이미지 태그에 표시
-      finalImage.style.display = "block"; // 최종 이미지 보이기
-      const link = document.createElement("a"); // 다운로드를 위한 링크 생성
-      link.href = dataURL;
-      link.download = "tree-decoration.png"; // 다운로드 파일명 설정
-      link.textContent = "이미지 다운로드"; // 링크 텍스트
-      link.style.display = "inline-block";
-      link.style.marginTop = "10px";
-      link.style.background = "#4CAF50";
-      link.style.color = "#fff";
-      link.style.padding = "10px 20px";
-      link.style.borderRadius = "5px";
-      link.style.textDecoration = "none";
-      document.body.appendChild(link); // 페이지에 링크 추가
-    });
-  }
-
-
+}
 
 </script>
 
 
 </body>
 </html>
-
